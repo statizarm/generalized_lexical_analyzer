@@ -10,6 +10,7 @@ class Lexis {
 		using token_id_type = TokenIDT;
 		using pattern_type  = PatternT;
 
+		using token_type = std::pair <token_id_type, pattern_type>;
 		using container_type = std::vector <token_type>;
 
 		Lexis () = default;
@@ -24,10 +25,8 @@ class Lexis {
 			return m_tokens;
 		}
 	private:
-		using token_type = std::pair <token_id_type, pattern_type>;
-
 		container_type m_tokens;
-}
+};
 
 } // end of gla namespace
 

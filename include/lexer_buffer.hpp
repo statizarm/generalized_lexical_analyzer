@@ -10,9 +10,6 @@ class Lexer_buffer_iterator {
 	public:
 		using char_type         = CharT;
 
-		using iterator_category = std::input_iterator_tag;
-		using value_type        = char_type;
-
 		Lexer_buffer_iterator (char_type *p) : m_p (p)
 		{ }
 
@@ -23,8 +20,9 @@ class Lexer_buffer_iterator {
 
 		Lexer_buffer_iterator &operator++ ()
 		{
-			this->m_p = ((uint64_t) (this->m_p + 1) & 0x0FFF) |
-                        ((uint64_t) this->m_p & 0xFFFFFFFFFFFFF000)
+			this->m_p = (char_type *)
+			            (((uint64_t) (this->m_p + 1) & 0x0FFF) |
+                        ((uint64_t) this->m_p & 0xFFFFFFFFFFFFF000));
 			
 			return *this;
 		}
@@ -51,17 +49,17 @@ template <class IStreamT>
 class Lexer_buffer {
 	public:
 		using istream_type = IStreamT;
-		using char_type = istream_type::char_type;
+		using char_type = typename istream_type::char_type;
 		using iterator = Lexer_buffer_iterator <char_type>;
 
 		Lexer_buffer (istream_type *in) : m_in (in)
 		{
-			m_data_end = aligned_alloc (4096, 4096);
+			m_data_end = static_cast <char_type *> (aligned_alloc (4096, 4096));
 
 			m_curr = m_data_end;
 
 			m_first_buff_end = m_data_end + m_chars_in_buffer;
-			m_seconf_buff_end = m_first_buff_end + m_chars_in_buffer;
+			m_second_buff_end = m_first_buff_end + m_chars_in_buffer;
 		}
 
 		~Lexer_buffer ()
@@ -79,9 +77,9 @@ class Lexer_buffer {
 			return *m_curr;
 		}
 
-		Lexer_buffer_iterator getpos () const
+		iterator getpos () const
 		{
-			return Lexer_buffer_iterator ((char_type *) m_curr);
+			return iterator ((char_type *) m_curr);
 		}
 
 		bool is_empty () const
@@ -98,11 +96,11 @@ class Lexer_buffer {
 		
 		char_type *m_data_end;
 
-		constexpr uint64_t m_chars_in_buffer = 2048 / sizeof (char_type)
+		static constexpr uint64_t m_chars_in_buffer = 2048 / sizeof (char_type);
 
 		void move ()
 		{
-			if (m_curr ==  m_data_end)
+			if (m_curr == m_data_end)
 				fill_buffer ();
 			else 
 				++m_curr;
@@ -134,6 +132,16 @@ class Lexer_buffer {
 } // end of implementation_details namespace
 
 } // end of gla namespace
+
+namespace std {
+
+template <class CharT>
+struct iterator_traits <gla::implementation_details::Lexer_buffer_iterator <CharT> > {
+	using value_type = CharT;
+	using iterator_category = std::input_iterator_tag;
+};
+
+}
 
 #endif // LEXER_BUFFER_HPP_
 
