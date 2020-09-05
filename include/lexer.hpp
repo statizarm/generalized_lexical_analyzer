@@ -1,6 +1,8 @@
 #ifndef LEXER_HPP_
 #define LEXER_HPP_
 
+#include <iostream>
+#include <iostream>
 #include <vector>
 #include <utility>
 #include <istream>
@@ -32,40 +34,46 @@ class Lexer {
 			   CompT &&fsm_comp = fsm_compiler_type (),
 			   MakerT &&token_maker = token_maker_type ())
 		  : m_fsm (fsm_comp.make_fsm (lexis.get_tokens ())),
-		    m_token_maker (token_maker), m_buff (in)
+		    m_token_maker (token_maker), m_buff (new buffer (in))
 		{
+		}
+
+		~Lexer ()
+		{
+			delete m_buff;
 		}
 
 		decltype (auto) scan ()
 		{
 			m_fsm.reset ();
 			
-			auto beg = m_buff.getpos ();
-  
-			auto c = (m_buff.is_empty ()) ? m_buff.getchar () : *beg;
+			auto c = m_buff->peek ();
+			
+			auto begin   = m_buff->getpos ();
+			auto forward = begin;
 
-			while (true) {
-				m_fsm.next (c);
+			while (m_fsm.next (c).is_running ()) {
 
-				if (!m_fsm.is_running ()) {
-					break;
+				if (m_fsm.is_match_state ()) {
+					forward = m_buff->getpos ();
 				}
 
-				c = getchar ();
+				c = m_buff->getchar ();
 			}
 
-			auto end = m_buff.getpos ();
-			
+			m_buff->setpos (++forward);
+
 			auto &&matched = m_fsm.get_matched ();
 
 			return m_token_maker.make_tokens (std::begin (matched),
-			    std::end (matched), beg, end);
+			    std::end (matched), begin, forward);
 		}
 	protected:
 		fsm_type m_fsm;
 		token_maker_type m_token_maker;
 	private:
-		implementation_details::Lexer_buffer <istream_type> m_buff;
+		using buffer = implementation_details::Lexer_buffer <istream_type>;
+		buffer *m_buff;
 };
 
 } // end of gla namespace

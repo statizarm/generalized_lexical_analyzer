@@ -8,8 +8,8 @@ class Token {
 		Token (int tag, T&& beg, T&& end) : m_tag (tag), m_str (beg, end)
 		{ }
 
-		friend std::basic_ostream <wchar_t>
-		&operator<< (std::basic_ostream <wchar_t> &out, const Token &tok);
+		friend std::basic_ostream <char>
+		&operator<< (std::basic_ostream <char> &out, const Token &tok);
 
 		int tag () const
 		{
@@ -17,16 +17,16 @@ class Token {
 		}
 	private:
 		int m_tag;
-		std::basic_string <wchar_t> m_str;
+		std::basic_string <char> m_str;
 };
 
-std::basic_ostream <wchar_t> &
-operator<< (std::basic_ostream <wchar_t> &out, const Token &tok)
+std::basic_ostream <char> &
+operator<< (std::basic_ostream <char> &out, const Token &tok)
 {
 	if (tok.m_tag == 0) {
 		out << tok.m_str;
 	} else if (tok.m_tag == 1) {
-		out << "\033[32m" << tok.m_str << "\033[0m";
+		out << /*"\033[32m" <<*/ tok.m_str/* << "\033[0m"*/;
 	}
 
 	return out;
@@ -46,13 +46,20 @@ class Token_maker {
 			InputIterator in_begin,
 			InputIterator in_end)
 		{
-			std::vector <Token> res;
-
-			while (cont_begin != cont_end) {
-				res.emplace_back (*cont_begin, in_begin, in_end);
+			if (cont_begin == cont_end) {
+				std::cerr << "empty matched tokens container" << std::endl;
+				exit (1);
 			}
 
-			return res;
+			if (in_begin == in_end) {
+				std::cout << "empty token lexeme" << std::endl;
+			}
+
+			if (*in_begin == 0) {
+				std::cout << "lexeme containes zero code symbol" << std::endl;
+			}
+
+			return Token (*cont_begin, in_begin, in_end);
 		}
 };
 
@@ -64,28 +71,25 @@ class FSM {
 
 		bool is_running () const
 		{
-			if (m_state != 255) {
-				return false;
-			} else {
-				return true;
-			}
+			return m_state != 255;
 		}
 
 		template <class CharT>
-		void next (CharT &&c)
+		FSM &next (CharT &&c)
 		{
 			switch (m_state) {
 			case 0:
 				if (c =='#') {
 					m_state = 2;
+				} else if (c == EOF) {
+					m_state = 5;
 				} else {
 					m_state = 1;
 				}
+				m_last.push_back (0);
 				break;
 			case 1:
-				m_last.clear ();
 				m_state = 255;
-				m_last.emplace_back (0);
 				break;
 			case 2:
 				if (c == 'i') {
@@ -96,23 +100,40 @@ class FSM {
 				break;
 			case 3:
 				if (c == 'f') {
-					m_last.emplace_back (1);
+					m_last.clear ();
 					m_state = 4;
+					m_last.push_back (1);
 				} else {
 					m_state = 255;
 				}
+				break;
 			case 4:
+				m_state = 255;
+				break;
+			case 5:
 				m_last.clear ();
-				m_last.emplace_back (1);
+				m_last.push_back (EOF);
 				m_state = 255;
 				break;
 			}
+
+			return *this;
 		}
 
 		void reset ()
 		{
 			m_state = 0;
 			m_last.clear ();
+		}
+
+		bool is_match_state () const
+		{
+			switch (m_state) {
+			case 1: case 5: case 4:
+				return true;
+			default:
+				return false;
+			}
 		}
 
 		const std::vector <int> &get_matched () const
@@ -127,7 +148,7 @@ class FSM {
 class FSM_compiler {
 	public:
 		using fsm_type = FSM;
-		using pattern_type = std::basic_string <wchar_t>;
+		using pattern_type = std::basic_string <char>;
 		FSM_compiler () = default;
 
 		template <class T>
@@ -140,9 +161,13 @@ class FSM_compiler {
 using namespace gla;
 
 int main () {
-	Lexer <Token_maker, FSM_compiler> lex (&std::wcin, Lexis <int, std::basic_string <wchar_t> > ());
+	Lexer <Token_maker, FSM_compiler, std::basic_istream <char> > lex (&std::cin, Lexis <int, std::basic_string <char> > ());
 
-	lex.scan ();
+	for (auto token = lex.scan (); token.tag () != EOF; token = lex.scan ())
+	{
+		//auto token = lex.scan ();
+		std::cout << token; 
+	}
 
 	return 0;
 }
