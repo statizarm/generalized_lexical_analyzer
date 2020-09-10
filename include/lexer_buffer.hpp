@@ -1,3 +1,11 @@
+/*
+ *   first buffer   second buffer
+ * _______^______________^_______
+ * |____   _______|___   _______|
+ * | |  ... | |EOF| | ... | |EOF|
+ * |_|_    _|_|___|_|_    |_|___|
+ *
+ */
 #ifndef LEXER_BUFFER_HPP_
 #define LEXER_BUFFER_HPP_
 

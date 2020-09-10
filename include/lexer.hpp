@@ -15,25 +15,24 @@ namespace gla {
 
 template <class TokenMakerT,
           class FSMCompilerT,
+		  class LexisT = gla::Lexis <int, std::basic_string <wchar_t> >,
           class IStreamT = std::basic_istream <wchar_t> >
 class Lexer {
 	public:
-		using token_maker_type = TokenMakerT;
+		using token_maker_type  = TokenMakerT;
 		using fsm_compiler_type = FSMCompilerT;
-		using istream_type = IStreamT;
+		using lexis_type        = LexisT;
+		using istream_type      = IStreamT;
 
-		using token_type = typename token_maker_type::token_type;
-		using token_id_type = typename token_maker_type::token_id_type;
-		using pattern_type = typename fsm_compiler_type::pattern_type;
-		using fsm_type   = typename fsm_compiler_type::fsm_type;
+		using fsm_type = typename fsm_compiler_type::fsm_type;
 
-		template <class CompT = FSMCompilerT,
-		          class MakerT = TokenMakerT>
-		Lexer (IStreamT *in,
-               const Lexis <token_id_type, pattern_type> &lexis,
+		template <class CompT  = FSMCompilerT,
+		          class MakerT = TokenMakerT,
+				  class LexT   = LexisT>
+		Lexer (IStreamT *in, LexT &&lexis,
 			   CompT &&fsm_comp = fsm_compiler_type (),
 			   MakerT &&token_maker = token_maker_type ())
-		  : m_fsm (fsm_comp.make_fsm (lexis.get_tokens ())),
+		  : m_fsm (fsm_comp.make (lexis.get_tokens ())),
 		    m_token_maker (token_maker), m_buff (new buffer (in))
 		{
 		}
@@ -63,10 +62,7 @@ class Lexer {
 
 			m_buff->setpos (++forward);
 
-			auto &&matched = m_fsm.get_matched ();
-
-			return m_token_maker.make_tokens (std::begin (matched),
-			    std::end (matched), begin, forward);
+			return m_token_maker.make (m_fsm.get_matched (), begin, forward);
 		}
 	protected:
 		fsm_type m_fsm;
