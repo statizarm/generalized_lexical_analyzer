@@ -1,5 +1,5 @@
-#ifndef LEXIS_HPP_
-#define LEXIS_HPP_
+#ifndef GLA_LEXIS_HPP_
+#define GLA_LEXIS_HPP_
 
 namespace gla {
 
@@ -30,5 +30,5 @@ class Lexis {
 
 } // end of gla namespace
 
-#endif // LEXIS_HPP_
+#endif // GLA_LEXIS_HPP_
 

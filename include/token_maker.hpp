@@ -1,5 +1,5 @@
-#ifndef TOKEN_MAKER_T_
-#define TOKEN_MAKER_T_
+#ifndef GLA_TOKEN_MAKER_T_
+#define GLA_TOKEN_MAKER_T_
 
 #include "lexer_buffer.hpp"
 #include <type_traits>
@@ -57,5 +57,5 @@ struct Token_traits <Token <TokenTagT, InputIterator> > {
 } // end of gla namespace
 
 
-#endif // TOKEN_MAKER_T_
+#endif // GLA_TOKEN_MAKER_T_
 

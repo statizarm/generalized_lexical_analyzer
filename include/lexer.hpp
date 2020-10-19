@@ -1,5 +1,5 @@
-#ifndef LEXER_HPP_
-#define LEXER_HPP_
+#ifndef GLA_LEXER_HPP_
+#define GLA_LEXER_HPP_
 
 #include <iostream>
 #include <iostream>
@@ -29,7 +29,8 @@ class Lexer {
 		template <class CompT  = FSMCompilerT,
 		          class MakerT = TokenMakerT,
 				  class LexT   = LexisT>
-		Lexer (IStreamT *in, LexT &&lexis,
+		Lexer (IStreamT *in,
+		       LexT &&lexis = lexis_type (),
 			   CompT &&fsm_comp = fsm_compiler_type (),
 			   MakerT &&token_maker = token_maker_type ())
 		  : m_fsm (fsm_comp.make (lexis.get_tokens ())),
@@ -74,4 +75,4 @@ class Lexer {
 
 } // end of gla namespace
 
-#endif // LEXER_HPP_
+#endif // GLA_LEXER_HPP_

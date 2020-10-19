@@ -6,8 +6,8 @@
  * |_|_    _|_|___|_|_    |_|___|
  *
  */
-#ifndef LEXER_BUFFER_HPP_
-#define LEXER_BUFFER_HPP_
+#ifndef GLA_LEXER_BUFFER_HPP_
+#define GLA_LEXER_BUFFER_HPP_
 
 namespace gla {
 
@@ -193,5 +193,5 @@ struct iterator_traits <gla::implementation_details
 
 } // end of std namespace
 
-#endif // LEXER_BUFFER_HPP_
+#endif // GLA_LEXER_BUFFER_HPP_
 
